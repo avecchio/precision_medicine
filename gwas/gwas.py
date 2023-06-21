@@ -30,9 +30,6 @@ def read_vcf_file(filename):
     df = pd.DataFrame(split_entries, columns=columns)
     return df.to_dict('records')
 
-phenotype_map = read_phenotype_file("PRS_phen.txt")
-snps = read_vcf_file('GWAS_data.vcf')
-
 def genotype_to_allele(genotype):
     if genotype == '0|0':
         return 'aa'
@@ -43,8 +40,14 @@ def genotype_to_allele(genotype):
     else:
         print('error')
 
+phenotype_map = read_phenotype_file("PRS_phen.txt")
+snps = read_vcf_file('GWAS_data.vcf')
+
 genotypes = {}
+snp_pvals = []
 for snp in snps:
+    snp_id = snp['ID']
+
     genotype_freq_table = {
         'cases' : {'aa': 0, 'Aa': 0, 'AA': 0},
         'controls': {'aa': 0, 'Aa': 0, 'AA': 0}
@@ -63,10 +66,10 @@ for snp in snps:
     #print(contingency_df)
     #values = contingency_df.to_numpy().flatten()
     try:
-        res = chi2_contingency(contingency_df)
-        print(res.pvalue)
+        res = chi2_contingency(contingency_df, correction=False)
+        snp_pvals.append({'id': snp_id, 'pval': res.pvalue})
     except:
-        pass
+        snp_pvals.append({'id': snp_id, 'pval': 1})
         #print(contingency_df)
 
 
